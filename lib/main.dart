@@ -32,16 +32,33 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // create streamcontroller................................
+  // Stream Controller ......................................
+
   StreamController _controller = StreamController();
 
 
   addStreamData() async{
-    for (int i = 0; i < 10; i++) {
+    for(var i = 0;i<10 ;i++){
       await Future.delayed(Duration(seconds: 2));
-      _controller.add(i);
+      _controller.sink.add(i);
     }
   }
+
+  Stream<int> addStreamData2() async*{
+    for(int i =0 ; i<10 ; i++){
+      await Future.delayed(Duration(seconds: 2));
+      yield i;
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    addStreamData2();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -51,17 +68,32 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('Stream Tutorial'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Stream Items :',
-            ),
-            Text(
-              '0',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        child: StreamBuilder(
+        //  stream: _controller.stream,
+        stream: addStreamData2(),
+          builder: (context,snapshot){
+
+            if(snapshot.hasError){
+              return Text("Error");
+            }else if(snapshot.connectionState == ConnectionState.waiting){
+              return CircularProgressIndicator();
+            }
+
+            return  Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Stream Item'
+                ),
+
+                Text(
+                  '${snapshot.data}'
+                ),
+              ],
+            );
+
+
+          },
         ),
       ),
     );
